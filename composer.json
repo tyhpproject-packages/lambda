@@ -1,0 +1,40 @@
+{
+    "name": "tyhp/lambda",
+    "description": "Tyhp runtime parsable lambdas (PHP 8.2): PropertyPath and Expression tree runtime classes",
+    "type": "library",
+    "license": "Apache-2.0",
+    "version": "802.0.1",
+    "extra": {
+        "tyhp": {
+            "interopContractVersion": 1,
+            "require": {"tyhpdef/php": "@dev"},
+            "package": {
+                "include": [
+                    "./package.tyhpdef"
+                ],
+                "exclude": [],
+                "overlay": [],
+                "source": {
+                    "tagless": false
+                }
+            }
+        }
+    },
+    "require": {
+        "php": ">=8.2",
+        "tyhp/core": "802.0.* || 803.0.* || 804.0.* || 805.0.*"
+    },
+    "require-dev": {
+        "tyhpdef/php": "@dev"
+    },
+    "config": {
+        "allow-plugins": {
+            "tyhp/core": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Tyhp\\": "src/Tyhp/"
+        }
+    }
+}
