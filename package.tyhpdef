@@ -2,7 +2,7 @@
 /**
  * AUTO-GENERATED, DO NOT EDIT
  * Compiler: 805.1.0.0
- * Generated: 2026-10-05T14:07:39.9812680Z
+ * Generated: 2026-10-15T16:30:53.5014200Z
  */
 namespace Tyhp {
     /**
@@ -187,7 +187,7 @@ namespace Tyhp {
     */
     #[\Tyhp\GenericRuntime(erased: false, factory: "new_Tyhp_PropertyPath__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
     class PropertyPath<TCallableShape extends callable> extends \Tyhp\Expression<TCallableShape> {
-        public array<string> $path;
+        readonly public array<string> $path;
         /**
         * @param array<string> $path Property names in access order.
         * @param bool $allowEmpty When true, an empty path is allowed (identity / builder root).
@@ -231,7 +231,7 @@ namespace Tyhp {
         * @param array<string> $path RHS property segments while continuing after and()/or().
         * @param array<bool> $nullSafeFlags
         */
-        public function __construct(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array<\Tyhp\Expression\ParameterExpression> $parameters, \Closure $callable, string $returnType = 'bool', array<string> $path = [], array<bool> $nullSafeFlags = [], ?\Tyhp\Expression<callable(T): mixed> $pendingLeft = null, ?string $pendingCombinator = null): void;
+        public function __construct(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array<\Tyhp\Expression\ParameterExpression> $parameters, \Closure $callable, string $returnType = 'bool', array<string> $path = [], array<bool> $nullSafeFlags = [], ?\Tyhp\Expression $pendingLeft = null, ?string $pendingCombinator = null): void;
         /**
         * @param class-string<TSource>|string $sourceType
         * @param array<ParameterExpression> $parameters
@@ -381,11 +381,11 @@ namespace Tyhp {
     */
     #[\Tyhp\GenericRuntime(erased: false, factory: "new_Tyhp_Expression__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
     class Expression<TCallableShape extends callable> {
-        public array<\Tyhp\Expression\ParameterExpression> $parameters;
+        readonly public array<\Tyhp\Expression\ParameterExpression> $parameters;
         public mixed $lastResult ?? null;
-        public \Tyhp\Expression\ExpressionNode $body;
-        public \Closure<TCallableShape> $callable;
-        public string $returnType;
+        readonly public \Tyhp\Expression\ExpressionNode $body;
+        readonly public \Closure<TCallableShape> $callable;
+        readonly public string $returnType;
         public function __construct(\Tyhp\Expression\ExpressionNode $body, array<\Tyhp\Expression\ParameterExpression> $parameters, \Closure<TCallableShape> $callable, string $returnType): void;
         public function __invoke(__CallableParametersRest<TCallableShape> ...$args): __CallableReturnType<TCallableShape>;
         public function compile(): \Closure<TCallableShape>;
@@ -460,108 +460,63 @@ namespace Tyhp {
 }
 namespace Tyhp\Expression {
     final class UnaryExpression extends \Tyhp\Expression\ExpressionNode {
-        public string $operator;
-        public \Tyhp\Expression\ExpressionNode $operand;
-        public bool $isPrefix;
+        readonly public string $operator;
+        readonly public \Tyhp\Expression\ExpressionNode $operand;
+        readonly public bool $isPrefix;
         public function __construct(string $operator, \Tyhp\Expression\ExpressionNode $operand, bool $isPrefix, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class TernaryExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $condition;
-        public ?\Tyhp\Expression\ExpressionNode $ifTrue;
-        public \Tyhp\Expression\ExpressionNode $ifFalse;
+        readonly public \Tyhp\Expression\ExpressionNode $condition;
+        readonly public ?\Tyhp\Expression\ExpressionNode $ifTrue;
+        readonly public \Tyhp\Expression\ExpressionNode $ifFalse;
         public function __construct(\Tyhp\Expression\ExpressionNode $condition, ?\Tyhp\Expression\ExpressionNode $ifTrue, \Tyhp\Expression\ExpressionNode $ifFalse, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class StaticMethodCallExpression extends \Tyhp\Expression\ExpressionNode {
-        public array<\Tyhp\Expression\ExpressionNode> $arguments;
-        public string $class;
-        public string $method;
+        readonly public array<\Tyhp\Expression\ExpressionNode> $arguments;
+        readonly public string $class;
+        readonly public string $method;
         public function __construct(string $class, string $method, array<\Tyhp\Expression\ExpressionNode> $arguments, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class PropertyAccessExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $object;
-        public string $property;
+        readonly public \Tyhp\Expression\ExpressionNode $object;
+        readonly public string $property;
         public function __construct(\Tyhp\Expression\ExpressionNode $object, string $property, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class ParameterExpression extends \Tyhp\Expression\ExpressionNode {
-        public string $name;
-        public string $paramType;
-        public int $index;
+        readonly public string $name;
+        readonly public string $paramType;
+        readonly public int $index;
         public function __construct(string $name, string $paramType, int $index): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class NullSafeAccessExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $object;
-        public string $property;
+        readonly public \Tyhp\Expression\ExpressionNode $object;
+        readonly public string $property;
         public function __construct(\Tyhp\Expression\ExpressionNode $object, string $property, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class NewExpression extends \Tyhp\Expression\ExpressionNode {
-        public array<\Tyhp\Expression\ExpressionNode> $arguments;
-        public string $class;
+        readonly public array<\Tyhp\Expression\ExpressionNode> $arguments;
+        readonly public string $class;
         public function __construct(string $class, array<\Tyhp\Expression\ExpressionNode> $arguments): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class MethodCallExpression extends \Tyhp\Expression\ExpressionNode {
-        public array<\Tyhp\Expression\ExpressionNode> $arguments;
-        public \Tyhp\Expression\ExpressionNode $object;
-        public string $method;
+        readonly public array<\Tyhp\Expression\ExpressionNode> $arguments;
+        readonly public \Tyhp\Expression\ExpressionNode $object;
+        readonly public string $method;
         public function __construct(\Tyhp\Expression\ExpressionNode $object, string $method, array<\Tyhp\Expression\ExpressionNode> $arguments, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class InstanceofExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $operand;
-        public string $targetType;
+        readonly public \Tyhp\Expression\ExpressionNode $operand;
+        readonly public string $targetType;
         public function __construct(\Tyhp\Expression\ExpressionNode $operand, string $targetType, string $type = 'bool'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
-    }
-    /**
-    * Shared helpers for {@see \Tyhp\PropertyPathBuilder} and {@see \Tyhp\ExpressionBuilder}.
-    *
-    * @internal
-    */
-    final class FluentSupport {
-        /**
-        * Normalize `of()` segment arguments into a flat list of property names.
-        *
-        * Supports `of($class, 'a', 'b')` and `of($class, ['a', 'b'])` — not dotted strings.
-        *
-        * @param string|array<string> ...$segments
-        * @return array<string>
-        */
-        public static function resolveSegments(string|array ...$segments): array<string>;
-        /**
-        * Build a getter closure for a property / assoc-key chain, honoring per-segment null-safe flags.
-        *
-        * The source stays {@see mixed}: {@see \Tyhp\PropertyPath::getValue} and comparison
-        * closures pass mixed, and nested hops are untyped even when the builder root is an object.
-        * Each hop narrows to array (including Tyhp structs, which emit as arrays),
-        * {@see \ArrayAccess}, or object before reading.
-        *
-        * @param array<string> $path
-        * @param array<bool> $nullSafeFlags
-        */
-        public static function synthesizePathCallable(array<string> $path, array<bool> $nullSafeFlags): \Closure;
-        /**
-        * Build the expression-tree body for a property chain (null-safe aware).
-        *
-        * @param array<string> $path
-        * @param array<bool> $nullSafeFlags
-        * @return \Tyhp\Expression\Structs\PathNode
-        */
-        public static function buildPathNodes(string $sourceType, array<string> $path, array<bool> $nullSafeFlags): \Tyhp\Expression\Structs\PathNode;
-        public static function evaluateBinary(mixed $left, string $operator, mixed $right): bool;
-        /**
-        * Combine two expressions with `&&` or `||` into a boolean expression.
-        */
-        public static function combine(\Tyhp\Expression $left, \Tyhp\Expression $right, string $operator): \Tyhp\Expression<callable(mixed): bool>;
-        /**
-        * @param array<Expression<callable(mixed): bool>> $expressions
-        */
-        public static function combineAll(array<\Tyhp\Expression<callable(mixed): bool>> $expressions, string $operator): \Tyhp\Expression<callable(mixed): bool>;
     }
     abstract class ExpressionVisitor {
         public function visit(\Tyhp\Expression\ExpressionNode $node): mixed;
@@ -589,102 +544,102 @@ namespace Tyhp\Expression {
         public static function equals(\Tyhp\Expression $a, \Tyhp\Expression $b): bool;
     }
     type SerializedExpression = struct {
-        string $nodeType;
-        string $type;
+        string $nodeType = '';
+        string $type = '';
     };
-    type SerializedParameterExpression = struct {
-        string $name;
-        int $index;
+    type SerializedParameterExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        string $name = '';
+        int $index = 0;
     };
-    type SerializedPropertyAccessExpression = struct {
+    type SerializedPropertyAccessExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $object;
-        string $property;
+        string $property = '';
     };
-    type SerializedNullSafeAccessExpression = struct {
+    type SerializedNullSafeAccessExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $object;
-        string $property;
+        string $property = '';
     };
-    type SerializedMethodCallExpression = struct {
+    type SerializedMethodCallExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $object;
-        string $method;
-        array<\Tyhp\Expression\SerializedExpression> $arguments;
+        string $method = '';
+        array<\Tyhp\Expression\SerializedExpression> $arguments = [];
     };
-    type SerializedStaticMethodCallExpression = struct {
-        string $class;
-        string $method;
-        array<\Tyhp\Expression\SerializedExpression> $arguments;
+    type SerializedStaticMethodCallExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        string $class = '';
+        string $method = '';
+        array<\Tyhp\Expression\SerializedExpression> $arguments = [];
     };
-    type SerializedBinaryExpression = struct {
+    type SerializedBinaryExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $left;
-        string $operator;
+        string $operator = '';
         \Tyhp\Expression\SerializedExpression $right;
     };
-    type SerializedUnaryExpression = struct {
-        string $operator;
+    type SerializedUnaryExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        string $operator = '';
         \Tyhp\Expression\SerializedExpression $operand;
-        bool $isPrefix;
+        bool $isPrefix = true;
     };
-    type SerializedConstantExpression = struct {
-        mixed $value;
+    type SerializedConstantExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        mixed $value = null;
     };
-    type SerializedTernaryExpression = struct {
+    type SerializedTernaryExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $condition;
-        ?\Tyhp\Expression\SerializedExpression $ifTrue;
+        ?\Tyhp\Expression\SerializedExpression $ifTrue = null;
         \Tyhp\Expression\SerializedExpression $ifFalse;
     };
-    type SerializedCoalesceExpression = struct {
+    type SerializedCoalesceExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $left;
         \Tyhp\Expression\SerializedExpression $right;
     };
-    type SerializedArrayAccessExpression = struct {
+    type SerializedArrayAccessExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $array;
         \Tyhp\Expression\SerializedExpression $index;
     };
-    type SerializedCastExpression = struct {
-        string $targetType;
+    type SerializedCastExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        string $targetType = '';
         \Tyhp\Expression\SerializedExpression $operand;
     };
-    type SerializedNewExpression = struct {
-        string $class;
-        array<\Tyhp\Expression\SerializedExpression> $arguments;
+    type SerializedNewExpression = struct extends \Tyhp\Expression\SerializedExpression {
+        string $class = '';
+        array<\Tyhp\Expression\SerializedExpression> $arguments = [];
     };
-    type SerializedInstanceofExpression = struct {
+    type SerializedInstanceofExpression = struct extends \Tyhp\Expression\SerializedExpression {
         \Tyhp\Expression\SerializedExpression $operand;
-        string $targetType;
+        string $targetType = '';
     };
     abstract class ExpressionNode {
-        public string $type;
-        public string $nodeType;
+        readonly public string $type;
+        readonly public string $nodeType;
         public function __construct(string $type, string $nodeType): void;
         public abstract function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class ConstantExpression extends \Tyhp\Expression\ExpressionNode {
-        public mixed $value;
+        readonly public mixed $value;
         public function __construct(mixed $value, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class CoalesceExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $left;
-        public \Tyhp\Expression\ExpressionNode $right;
+        readonly public \Tyhp\Expression\ExpressionNode $left;
+        readonly public \Tyhp\Expression\ExpressionNode $right;
         public function __construct(\Tyhp\Expression\ExpressionNode $left, \Tyhp\Expression\ExpressionNode $right, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class CastExpression extends \Tyhp\Expression\ExpressionNode {
-        public string $targetType;
-        public \Tyhp\Expression\ExpressionNode $operand;
+        readonly public string $targetType;
+        readonly public \Tyhp\Expression\ExpressionNode $operand;
         public function __construct(string $targetType, \Tyhp\Expression\ExpressionNode $operand): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class BinaryExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $left;
-        public string $operator;
-        public \Tyhp\Expression\ExpressionNode $right;
+        readonly public \Tyhp\Expression\ExpressionNode $left;
+        readonly public string $operator;
+        readonly public \Tyhp\Expression\ExpressionNode $right;
         public function __construct(\Tyhp\Expression\ExpressionNode $left, string $operator, \Tyhp\Expression\ExpressionNode $right, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }
     final class ArrayAccessExpression extends \Tyhp\Expression\ExpressionNode {
-        public \Tyhp\Expression\ExpressionNode $array;
-        public \Tyhp\Expression\ExpressionNode $index;
+        readonly public \Tyhp\Expression\ExpressionNode $array;
+        readonly public \Tyhp\Expression\ExpressionNode $index;
         public function __construct(\Tyhp\Expression\ExpressionNode $array, \Tyhp\Expression\ExpressionNode $index, string $type = 'mixed'): void;
         public function accept(\Tyhp\Expression\ExpressionVisitor $visitor): mixed;
     }

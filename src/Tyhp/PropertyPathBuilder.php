@@ -55,7 +55,7 @@ class PropertyPathBuilder extends PropertyPath
         if ($this->__tyhpGeneric->needsInit()) {
             self::__initGenerics__tyhpGeneric(null);
         }
-        parent::__construct($sourceType, 'mixed', $path, FluentSupport::synthesizePathCallable($path, $nullSafeFlags), allowEmpty: true, nullSafeFlags: $nullSafeFlags);
+        parent::__construct($sourceType, 'mixed', $path, \Tyhp\Expression\FluentSupport::synthesizePathCallable($path, $nullSafeFlags), allowEmpty: true, nullSafeFlags: $nullSafeFlags);
     }
     /**
      * Start a fluent property path (and optionally seed segments).

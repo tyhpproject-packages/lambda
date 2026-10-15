@@ -339,7 +339,6 @@ class ExpressionBuilder extends \Tyhp\Expression
         $this->__tyhpGeneric->init(static::class, \Tyhp\ExpressionBuilder::class, new \Tyhp\NamedType('T', $t));
         $this->__tyhpGeneric->setPropertyType('path', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::string())));
         $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::bool())));
-        $this->__tyhpGeneric->setPropertyType('pendingLeft', \Tyhp\Type::nullable(\Tyhp\Type::generic(\Tyhp\Expression::class, new \Tyhp\NamedType('TValue', \Tyhp\Type::callableShape('callable')))));
         parent::__initGenerics__tyhpGeneric(\Tyhp\Type::callableShape('callable'));
     }
 }

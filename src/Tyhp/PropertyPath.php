@@ -65,10 +65,10 @@ class PropertyPath extends \Tyhp\Expression
     {
         $result = ($this->callable)($source);
         $this->lastResult = $result;
-        if (\Tyhp\Type::is($result, \Tyhp\Type::generic(\__CallableReturnType::class, new \Tyhp\NamedType('TCallableShape', $this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPath::class, 'TCallableShape'))))) {
+        if (\Tyhp\Type::is($result, \Tyhp\Type::mixed())) {
             return $result;
         }
-        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::generic(\__CallableReturnType::class, new \Tyhp\NamedType('TCallableShape', $this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPath::class, 'TCallableShape'))), Type::of($result), 'lastResult');
+        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), Type::of($result), 'lastResult');
     }
     protected function __initGenerics__tyhpGeneric(?\Tyhp\Type ...$generics): void
     {

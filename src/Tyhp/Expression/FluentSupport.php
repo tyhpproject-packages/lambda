@@ -137,16 +137,33 @@ final class FluentSupport
     public static function evaluateBinary(mixed $left, string $operator, mixed $right): bool
     {
         return match ($operator) {
-            '>' => $left > $right,
-            '>=' => $left >= $right,
-            '<' => $left < $right,
-            '<=' => $left <= $right,
+            '>', '>=', '<', '<=' => self::compareOrdered($left, $operator, $right),
             '==' => $left == $right,
             '!=' => $left != $right,
             '===' => $left === $right,
             '!==' => $left !== $right,
             default => throw new \InvalidArgumentException("Unsupported binary operator: $operator"),
         };
+    }
+    /**
+     * Applies PHP's ordering comparison to two values of any comparable kind (scalars, arrays,
+     * objects such as `\DateTimeInterface`, or `null`). Resources have no meaningful order.
+     */
+    private static function compareOrdered(mixed $left, string $operator, mixed $right): bool
+    {
+        if (!self::isComparable($left) || !self::isComparable($right)) {
+            throw new \TypeError('Cannot order-compare a resource value in an expression.');
+        }
+        return match ($operator) {
+            '>' => $left > $right,
+            '>=' => $left >= $right,
+            '<' => $left < $right,
+            default => $left <= $right,
+        };
+    }
+    private static function isComparable(mixed $value): bool
+    {
+        return ((\is_scalar($value) || ($value === null)) || \is_array($value)) || \is_object($value);
     }
     /**
      * Combine two expressions with `&&` or `||` into a boolean expression.

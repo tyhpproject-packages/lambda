@@ -106,10 +106,10 @@ class Expression
     {
         $result = ($this->callable)(...$args);
         $this->lastResult = $result;
-        if (\Tyhp\Type::is($result, \Tyhp\Type::generic(\__CallableReturnType::class, new \Tyhp\NamedType('TCallableShape', $this->__tyhpGeneric->resolvedType(\Tyhp\Expression::class, 'TCallableShape'))))) {
+        if (\Tyhp\Type::is($result, \Tyhp\Type::mixed())) {
             return $result;
         }
-        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::generic(\__CallableReturnType::class, new \Tyhp\NamedType('TCallableShape', $this->__tyhpGeneric->resolvedType(\Tyhp\Expression::class, 'TCallableShape'))), Type::of($result), 'lastResult');
+        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), Type::of($result), 'lastResult');
     }
     public function compile(): \Closure
     {
