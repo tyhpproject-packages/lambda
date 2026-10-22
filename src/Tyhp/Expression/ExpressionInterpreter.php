@@ -24,7 +24,7 @@ final class ExpressionInterpreter
      */
     public static function evaluate(\Tyhp\Expression\ExpressionNode $node, array $parameters, mixed ...$args): mixed
     {
-        $parameters;
+        (void) $parameters;
         return self::evalNode($node, $args);
     }
     /**

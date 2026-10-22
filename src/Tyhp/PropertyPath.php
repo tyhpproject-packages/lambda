@@ -138,7 +138,7 @@ class PropertyPath extends \Tyhp\Expression
             try {
                 $property = new \ReflectionProperty($class, $path[$i]);
             } catch (\Throwable $e) {
-                $e;
+                (void) $e;
                 return null;
             }
             $reflected = $property->getType();
