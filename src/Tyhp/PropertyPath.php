@@ -19,17 +19,20 @@ class PropertyPath extends \Tyhp\Expression
 {
     private static ?\ReflectionClass $__reflectedClass__tyhpGeneric = null;
     public readonly array $path;
+    /** @var array<bool> */
+    private array $nullSafeFlags;
     /**
      * @param array<string> $path Property names in access order.
      * @param bool $allowEmpty When true, an empty path is allowed (identity / builder root).
      * @param array<bool> $nullSafeFlags Per-segment `?->` flags aligned with $path; missing entries are false.
      */
-    public function __construct(string $sourceType, string $resultType, array $path, \Closure $callable, bool $allowEmpty = false, array $nullSafeFlags = [])
+    public function __construct(string $sourceType, string $resultType, array $path, ?\Closure $callable = null, bool $allowEmpty = false, array $nullSafeFlags = [])
     {
         $this->tyhpBootTraits();
         if ($this->__tyhpGeneric->needsInit()) {
             self::__initGenerics__tyhpGeneric(null);
         }
+        $this->nullSafeFlags = $nullSafeFlags;
         if (($path === []) && !$allowEmpty) {
             throw new \InvalidArgumentException('PropertyPath' . ' requires at least one path segment.');
         }
@@ -37,7 +40,184 @@ class PropertyPath extends \Tyhp\Expression
         $pathNodes = \Tyhp\Expression\FluentSupport::buildPathNodes($sourceType, $path, $nullSafeFlags);
         parent::__construct($pathNodes['body'], [$pathNodes['parameterExpression']], $callable, $resultType);
     }
-    final public static function new_Tyhp_PropertyPath__tyhpGeneric(?\Tyhp\Type $__generic_TCallableShape, string $sourceType, string $resultType, array $path, \Closure $callable, bool $allowEmpty = false, array $nullSafeFlags = []): self
+    /**
+     * Build a property path from the source class, the property names, and the closure that reads them.
+     *
+     * The callable shape is taken from `$callable`. When that closure declares a return type,
+     * it is used. Otherwise the type is read from the properties named in `$path` on
+     * `$sourceType`, including `?` when a segment is null-safe or the property allows null.
+     * Callers do not pass a type string or a generic argument.
+     *
+     * @template TCallable of callable
+     * @param class-string|string $sourceType Source object class (for example `User::class`).
+     * @param array<string> $path Property names in access order.
+     * @param array<bool> $nullSafeFlags Per-segment `?->` flags aligned with `$path`. Missing entries are false.
+     *
+     * @phpstan-template TCallable of callable
+     * @phpstan-param class-string|string $sourceType
+     * @phpstan-param array<string> $path
+     * @phpstan-param array<bool> $nullSafeFlags
+     * @phpstan-return PropertyPath<TCallable>
+     *
+     * @psalm-template TCallable of callable
+     * @psalm-param class-string|string $sourceType
+     * @psalm-param list<string> $path
+     * @psalm-param list<bool> $nullSafeFlags
+     * @psalm-return PropertyPath<TCallable>
+     */
+    #[\Tyhp\GenericRuntime(erased: false, binder: "from__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
+    public static function from(string $sourceType, array $path, \Closure $callable, array $nullSafeFlags = []): \Tyhp\PropertyPath
+    {
+        return static::from__tyhpGeneric(null)($sourceType, $path, $callable, $nullSafeFlags);
+    }
+    /**
+     * @param ?\Tyhp\Type $__generic_TCallable
+     * @return \Closure(string $sourceType, array $path, \Closure $callable, array $nullSafeFlags=): \Tyhp\PropertyPath
+     */
+    public static function from__tyhpGeneric(?\Tyhp\Type $__generic_TCallable): \Closure
+    {
+        $__generic_TCallable ??= \Tyhp\Type::mixed();
+        return function (string $sourceType, array $path, \Closure $callable, array $nullSafeFlags = []) use ($__generic_TCallable): \Tyhp\PropertyPath {
+            return \Tyhp\PropertyPath::new_Tyhp_PropertyPath__tyhpGeneric($__generic_TCallable, $sourceType, self::inferResultType($callable, $sourceType, $path, $nullSafeFlags), $path, $callable, false, $nullSafeFlags);
+        };
+    }
+    /**
+     * Result type for {@see PropertyPath::from()}: the closure's return type, then the
+     * declared type of the last property in `$path`.
+     *
+     * @param array<string> $path
+     * @param array<bool> $nullSafeFlags
+     */
+    private static function inferResultType(\Closure $callable, string $sourceType, array $path, array $nullSafeFlags): string
+    {
+        $fromCallable = self::callableReturnTypeName($callable);
+        if ($fromCallable !== null) {
+            return $fromCallable;
+        }
+        $fromPath = self::reflectPathType($sourceType, $path, $nullSafeFlags);
+        if ($fromPath !== null) {
+            return $fromPath;
+        }
+        return 'mixed';
+    }
+    /**
+     * PHP return type of `$callable`, or null when it is absent or `mixed`.
+     */
+    protected static function callableReturnTypeName(\Closure $callable): ?string
+    {
+        $type = \Tyhp\Type::fromCallableReturn($callable);
+        if ($type === null) {
+            return null;
+        }
+        $name = (string) $type;
+        if (($name === '') || ($name === 'mixed')) {
+            return null;
+        }
+        return $name;
+    }
+    /**
+     * Walk `$path` on `$sourceType` and spell the last property's PHP type.
+     * A null-safe segment or a nullable property makes the result nullable.
+     *
+     * @param array<string> $path
+     * @param array<bool> $nullSafeFlags
+     */
+    private static function reflectPathType(string $sourceType, array $path, array $nullSafeFlags): ?string
+    {
+        if (($path === []) || !\class_exists($sourceType)) {
+            return null;
+        }
+        $class = $sourceType;
+        $nullable = false;
+        $count = \count($path);
+        for ($i = 0; $i < $count; $i++) {
+            if (!\class_exists($class)) {
+                return null;
+            }
+            $property;
+            try {
+                $property = new \ReflectionProperty($class, $path[$i]);
+            } catch (\Throwable $e) {
+                $e;
+                return null;
+            }
+            $reflected = $property->getType();
+            if ($reflected === null) {
+                return null;
+            }
+            if (($nullSafeFlags[$i] ?? false) || $reflected->allowsNull()) {
+                $nullable = true;
+            }
+            if ($i < ($count - 1)) {
+                $next = self::nextPathClass($reflected, $class);
+                if ($next === null) {
+                    return null;
+                }
+                $class = $next;
+                continue;
+            }
+            $text = (string) \Tyhp\Type::fromReflectionType($reflected, $class);
+            if (($text === '') || ($text === 'mixed')) {
+                return null;
+            }
+            if ($nullable && !self::spellingIsNullable($text)) {
+                return '?' . $text;
+            }
+            return $text;
+        }
+        return null;
+    }
+    /**
+     * Class to continue a property walk through, when this segment's type names one class.
+     */
+    private static function nextPathClass(\ReflectionType $type, string $declaringClass): ?string
+    {
+        if (!($type instanceof \ReflectionNamedType) || $type->isBuiltin()) {
+            return null;
+        }
+        $name = $type->getName();
+        if (($name === 'self') || ($name === 'static')) {
+            return $declaringClass;
+        }
+        if ($name === 'parent') {
+            $parent = \get_parent_class($declaringClass);
+            if (!\is_string($parent)) {
+                return null;
+            }
+            return $parent;
+        }
+        return $name;
+    }
+    private static function spellingIsNullable(string $type): bool
+    {
+        return (\str_starts_with($type, '?') || \str_contains($type, '|null')) || \str_contains($type, 'null|');
+    }
+    /**
+     * Start a fluent property path. `__get` records each segment.
+     * `nullSafe()` marks only the next segment. `backedBy()` stores the closure
+     * whose return type is the path result.
+     *
+     * @template T of object
+     * @param class-string<T> $sourceType
+     * @return PropertyPathBuilder<T>
+     */
+    #[\Tyhp\GenericRuntime(erased: false, binder: "on__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
+    public static function on(string $sourceType): \Tyhp\PropertyPathBuilder
+    {
+        return static::on__tyhpGeneric(null)($sourceType);
+    }
+    /**
+     * @param ?\Tyhp\Type $__generic_T
+     * @return \Closure(string $sourceType): \Tyhp\PropertyPathBuilder
+     */
+    public static function on__tyhpGeneric(?\Tyhp\Type $__generic_T): \Closure
+    {
+        $__generic_T ??= \Tyhp\Type::mixed();
+        return function (string $sourceType) use ($__generic_T): \Tyhp\PropertyPathBuilder {
+            return \Tyhp\PropertyPathBuilder::new_Tyhp_PropertyPathBuilder__tyhpGeneric($__generic_T, $sourceType);
+        };
+    }
+    final public static function new_Tyhp_PropertyPath__tyhpGeneric(?\Tyhp\Type $__generic_TCallableShape, string $sourceType, string $resultType, array $path, ?\Closure $callable = null, bool $allowEmpty = false, array $nullSafeFlags = []): self
     {
         self::$__reflectedClass__tyhpGeneric ??= new \ReflectionClass(self::class);
         $__tyhp_obj = self::$__reflectedClass__tyhpGeneric->newInstanceWithoutConstructor();
@@ -63,12 +243,34 @@ class PropertyPath extends \Tyhp\Expression
     }
     public function getValue(mixed $source): mixed
     {
-        $result = ($this->callable)($source);
+        $native = $this->nativeClosure();
+        $result = ($native !== null) ? $native($source) : $this->walkPublic($source);
         $this->lastResult = $result;
         if (\Tyhp\Type::is($result, \Tyhp\Type::mixed())) {
             return $result;
         }
-        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), Type::of($result), 'lastResult');
+        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), \Tyhp\Type::of($result), 'lastResult');
+    }
+    /**
+     * Public `->` / `?->` only. A null receiver on a null-safe segment returns null
+     * and does not read the rest of the path.
+     */
+    private function walkPublic(mixed $source): mixed
+    {
+        $value = $source;
+        $count = \count($this->path);
+        for ($i = 0; $i < $count; $i++) {
+            $nullSafe = $this->nullSafeFlags[$i] ?? false;
+            if ($nullSafe && ($value === null)) {
+                return null;
+            }
+            if (!\is_object($value)) {
+                throw new \TypeError(((('Cannot read property "' . $this->path[$i]) . '" on ') . \get_debug_type($value)) . '.');
+            }
+            $segment = $this->path[$i];
+            $value = $value->$segment;
+        }
+        return $value;
     }
     protected function __initGenerics__tyhpGeneric(?\Tyhp\Type ...$generics): void
     {
@@ -78,7 +280,8 @@ class PropertyPath extends \Tyhp\Expression
         }
         $tCallableShape = $generics[0] ?? \Tyhp\Type::callable();
         $this->__tyhpGeneric->init(static::class, \Tyhp\PropertyPath::class, new \Tyhp\NamedType('TCallableShape', $tCallableShape));
-        $this->__tyhpGeneric->setPropertyType('path', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::string())));
+        $this->__tyhpGeneric->setPropertyType('path', \Tyhp\Type::listOf(\Tyhp\Type::string()));
+        $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::listOf(\Tyhp\Type::bool()));
         parent::__initGenerics__tyhpGeneric($tCallableShape);
     }
 }

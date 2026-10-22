@@ -8,4 +8,33 @@ declare(strict_types=1);
 
 namespace Tyhp\Expression;
 
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedParameterExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('name', \Tyhp\Type::string())->optional('index', \Tyhp\Type::int()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedPropertyAccessExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('object', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('property', \Tyhp\Type::string()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedNullSafeAccessExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('object', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('property', \Tyhp\Type::string()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedMethodCallExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('object', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('method', \Tyhp\Type::string())->optional('arguments', \Tyhp\Type::listOf(\Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedStaticMethodCallExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('class', \Tyhp\Type::string())->optional('method', \Tyhp\Type::string())->optional('arguments', \Tyhp\Type::listOf(\Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedBinaryExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('left', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('operator', \Tyhp\Type::string())->field('right', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedUnaryExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('operator', \Tyhp\Type::string())->field('operand', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('isPrefix', \Tyhp\Type::bool()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedConstantExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('value', \Tyhp\Type::mixed()));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedTernaryExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('condition', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('ifTrue', \Tyhp\Type::nullable(\Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')))->field('ifFalse', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedCoalesceExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('left', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->field('right', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedArrayAccessExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('array', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->field('index', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedCastExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('targetType', \Tyhp\Type::string())->field('operand', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression')));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedNewExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->optional('class', \Tyhp\Type::string())->optional('arguments', \Tyhp\Type::listOf(\Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))));
+
+\Tyhp\Type::register('Tyhp\\Expression\\SerializedInstanceofExpression', fn() => \Tyhp\Type::struct()->optional('nodeType', \Tyhp\Type::string())->optional('type', \Tyhp\Type::string())->field('operand', \Tyhp\Type::ref('Tyhp\\Expression\\SerializedExpression'))->optional('targetType', \Tyhp\Type::string()));
 //# sourceMappingURL=_functions.php.map

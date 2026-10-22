@@ -127,9 +127,9 @@ final class FluentSupport
             $segment = $path[$i];
             $nullSafe = $nullSafeFlags[$i] ?? false;
             if ($nullSafe) {
-                $body = new NullSafeAccessExpression($body, $segment, 'mixed');
+                $body = new \Tyhp\Expression\NullSafeAccessExpression($body, $segment, 'mixed');
             } else {
-                $body = new PropertyAccessExpression($body, $segment, 'mixed');
+                $body = new \Tyhp\Expression\PropertyAccessExpression($body, $segment, 'mixed');
             }
         }
         return ['parameterExpression' => $paramExpr, 'body' => $body];
@@ -176,12 +176,15 @@ final class FluentSupport
         $body = new \Tyhp\Expression\BinaryExpression($left->body, $operator, $right->body, 'bool');
         $leftCallable = $left->callable;
         $rightCallable = $right->callable;
-        $callable = static function (mixed ...$args) use ($leftCallable, $rightCallable, $operator): bool {
-            if ($operator === '&&') {
-                return (bool) $leftCallable(...$args) && (bool) $rightCallable(...$args);
-            }
-            return (bool) $leftCallable(...$args) || (bool) $rightCallable(...$args);
-        };
+        $callable = null;
+        if (($leftCallable !== null) && ($rightCallable !== null)) {
+            $callable = static function (mixed ...$args) use ($leftCallable, $rightCallable, $operator): bool {
+                if ($operator === '&&') {
+                    return (bool) $leftCallable(...$args) && (bool) $rightCallable(...$args);
+                }
+                return (bool) $leftCallable(...$args) || (bool) $rightCallable(...$args);
+            };
+        }
         return \Tyhp\Expression::new_Tyhp_Expression__tyhpGeneric(\Tyhp\Type::callableShape('callable'), $body, $left->parameters, $callable, 'bool');
     }
     /**

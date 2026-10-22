@@ -35,43 +35,43 @@ final class ExpressionSerializer
         if ($node instanceof \Tyhp\Expression\ParameterExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'name' => $node->name, 'index' => $node->index];
         }
-        if ($node instanceof PropertyAccessExpression) {
+        if ($node instanceof \Tyhp\Expression\PropertyAccessExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'property' => $node->property, 'object' => self::nodeToArray($node->object, $depth + 1)];
         }
-        if ($node instanceof NullSafeAccessExpression) {
+        if ($node instanceof \Tyhp\Expression\NullSafeAccessExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'property' => $node->property, 'object' => self::nodeToArray($node->object, $depth + 1)];
         }
-        if ($node instanceof MethodCallExpression) {
+        if ($node instanceof \Tyhp\Expression\MethodCallExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'method' => $node->method, 'arguments' => \array_map(fn(\Tyhp\Expression\ExpressionNode $arg): array => self::nodeToArray($arg, $depth + 1), $node->arguments), 'object' => self::nodeToArray($node->object, $depth + 1)];
         }
-        if ($node instanceof StaticMethodCallExpression) {
+        if ($node instanceof \Tyhp\Expression\StaticMethodCallExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'class' => $node->class, 'method' => $node->method, 'arguments' => \array_map(fn(\Tyhp\Expression\ExpressionNode $arg): array => self::nodeToArray($arg, $depth + 1), $node->arguments)];
         }
         if ($node instanceof \Tyhp\Expression\BinaryExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'operator' => $node->operator, 'left' => self::nodeToArray($node->left, $depth + 1), 'right' => self::nodeToArray($node->right, $depth + 1)];
         }
-        if ($node instanceof UnaryExpression) {
+        if ($node instanceof \Tyhp\Expression\UnaryExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'operator' => $node->operator, 'isPrefix' => $node->isPrefix, 'operand' => self::nodeToArray($node->operand, $depth + 1)];
         }
         if ($node instanceof \Tyhp\Expression\ConstantExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'value' => $node->value];
         }
-        if ($node instanceof TernaryExpression) {
+        if ($node instanceof \Tyhp\Expression\TernaryExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'ifTrue' => ($node->ifTrue !== null) ? self::nodeToArray($node->ifTrue, $depth + 1) : null, 'condition' => self::nodeToArray($node->condition, $depth + 1), 'ifFalse' => self::nodeToArray($node->ifFalse, $depth + 1)];
         }
-        if ($node instanceof CoalesceExpression) {
+        if ($node instanceof \Tyhp\Expression\CoalesceExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'left' => self::nodeToArray($node->left, $depth + 1), 'right' => self::nodeToArray($node->right, $depth + 1)];
         }
-        if ($node instanceof ArrayAccessExpression) {
+        if ($node instanceof \Tyhp\Expression\ArrayAccessExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'array' => self::nodeToArray($node->array, $depth + 1), 'index' => self::nodeToArray($node->index, $depth + 1)];
         }
-        if ($node instanceof CastExpression) {
+        if ($node instanceof \Tyhp\Expression\CastExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'targetType' => $node->targetType, 'operand' => self::nodeToArray($node->operand, $depth + 1)];
         }
-        if ($node instanceof NewExpression) {
+        if ($node instanceof \Tyhp\Expression\NewExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'class' => $node->class, 'arguments' => \array_map(fn(\Tyhp\Expression\ExpressionNode $arg): array => self::nodeToArray($arg, $depth + 1), $node->arguments)];
         }
-        if ($node instanceof InstanceofExpression) {
+        if ($node instanceof \Tyhp\Expression\InstanceofExpression) {
             return ['nodeType' => $node->nodeType, 'type' => $node->type, 'targetType' => $node->targetType, 'operand' => self::nodeToArray($node->operand, $depth + 1)];
         }
         throw new \InvalidArgumentException('Unsupported ExpressionNode type: ' . \get_class($node));

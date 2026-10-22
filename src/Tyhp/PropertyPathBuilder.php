@@ -49,13 +49,13 @@ class PropertyPathBuilder extends PropertyPath
      * @param array<string> $path
      * @param array<bool> $nullSafeFlags Per-segment null-safe flags aligned with {@see PropertyPath::$path}.
      */
-    public function __construct(private string $sourceType, array $path = [], private array $nullSafeFlags = [])
+    public function __construct(private string $sourceType, array $path = [], private array $nullSafeFlags = [], private bool $nextIsNullSafe = false)
     {
         $this->tyhpBootTraits();
         if ($this->__tyhpGeneric->needsInit()) {
             self::__initGenerics__tyhpGeneric(null);
         }
-        parent::__construct($sourceType, 'mixed', $path, \Tyhp\Expression\FluentSupport::synthesizePathCallable($path, $nullSafeFlags), allowEmpty: true, nullSafeFlags: $nullSafeFlags);
+        parent::__construct($sourceType, 'mixed', $path, null, allowEmpty: true, nullSafeFlags: $nullSafeFlags);
     }
     /**
      * Start a fluent property path (and optionally seed segments).
@@ -94,12 +94,12 @@ class PropertyPathBuilder extends PropertyPath
             return \Tyhp\PropertyPathBuilder::new_Tyhp_PropertyPathBuilder__tyhpGeneric($__generic_T, $sourceType, \Tyhp\Expression\FluentSupport::resolveSegments(...$segments));
         };
     }
-    final public static function new_Tyhp_PropertyPathBuilder__tyhpGeneric(?\Tyhp\Type $__generic_T, string $sourceType, array $path = [], array $nullSafeFlags = []): self
+    final public static function new_Tyhp_PropertyPathBuilder__tyhpGeneric(?\Tyhp\Type $__generic_T, string $sourceType, array $path = [], array $nullSafeFlags = [], bool $nextIsNullSafe = false): self
     {
         self::$__reflectedClass__tyhpGeneric ??= new \ReflectionClass(self::class);
         $__tyhp_obj = self::$__reflectedClass__tyhpGeneric->newInstanceWithoutConstructor();
         $__tyhp_obj->__initGenerics__tyhpGeneric($__generic_T);
-        $__tyhp_obj->__construct($sourceType, $path, $nullSafeFlags);
+        $__tyhp_obj->__construct($sourceType, $path, $nullSafeFlags, $nextIsNullSafe);
         return $__tyhp_obj;
     }
     /**
@@ -117,8 +117,47 @@ class PropertyPathBuilder extends PropertyPath
         $path = $this->path;
         $path[] = $name;
         $flags = $this->nullSafeFlags;
-        $flags[] = $nullSafe;
-        return \Tyhp\PropertyPathBuilder::new_Tyhp_PropertyPathBuilder__tyhpGeneric($this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPathBuilder::class, 'T'), $this->sourceType, $path, $flags);
+        $flags[] = ($nullSafe || $this->nextIsNullSafe);
+        return \Tyhp\PropertyPathBuilder::new_Tyhp_PropertyPathBuilder__tyhpGeneric($this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPathBuilder::class, 'T'), $this->sourceType, $path, $flags, false);
+    }
+    /**
+     * The next property is read with `?->`.
+     *
+     * @return PropertyPathBuilder<T>&T
+     */
+    public function nullSafe(): \Tyhp\PropertyPathBuilder
+    {
+        if ($this->nextIsNullSafe) {
+            throw new \LogicException('nullSafe() must be followed by a property.');
+        }
+        return \Tyhp\PropertyPathBuilder::new_Tyhp_PropertyPathBuilder__tyhpGeneric($this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPathBuilder::class, 'T'), $this->sourceType, $this->path, $this->nullSafeFlags, true);
+    }
+    /**
+     * Store the native closure and use its return type as the path result.
+     *
+     * @template TCallable of callable
+     * @param \Closure<TCallable> $callable
+     * @return PropertyPath<TCallable>
+     */
+    #[\Tyhp\GenericRuntime(erased: false, binder: "backedBy__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
+    public function backedBy(\Closure $callable): \Tyhp\PropertyPath
+    {
+        return $this->backedBy__tyhpGeneric(null)($callable);
+    }
+    /**
+     * @param ?\Tyhp\Type $__generic_TCallable
+     * @return \Closure(\Closure $callable): \Tyhp\PropertyPath
+     */
+    public function backedBy__tyhpGeneric(?\Tyhp\Type $__generic_TCallable): \Closure
+    {
+        $__generic_TCallable ??= \Tyhp\Type::mixed();
+        return function (\Closure $callable) use ($__generic_TCallable): \Tyhp\PropertyPath {
+            $this->guardNullSafe('backedBy');
+            if ($this->path === []) {
+                throw new \LogicException('Add a property before backedBy().');
+            }
+            return PropertyPath::from__tyhpGeneric($__generic_TCallable)($this->sourceType, $this->path, $callable, $this->nullSafeFlags);
+        };
     }
     /**
      * Append a property segment via `->$name` sugar.
@@ -134,6 +173,9 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function __get(string $name): \Tyhp\PropertyPathBuilder
     {
+        if (Expr::isChainMethod($name)) {
+            throw new \LogicException(((('Property "' . $name) . '" matches a builder method. Use prop(\'') . $name) . '\').');
+        }
         return $this->prop($name);
     }
     /**
@@ -171,6 +213,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function gt(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('gt');
         return $this->compare('>', $value);
     }
     /**
@@ -180,6 +223,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function gte(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('gte');
         return $this->compare('>=', $value);
     }
     /**
@@ -189,6 +233,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function lt(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('lt');
         return $this->compare('<', $value);
     }
     /**
@@ -198,10 +243,11 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function lte(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('lte');
         return $this->compare('<=', $value);
     }
     /**
-     * Loose equality (`==`).
+     * Strict equality (`===`).
      *
      * @return ExpressionBuilder<T>
      * @phpstan-return ExpressionBuilder<T>
@@ -209,10 +255,11 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function eq(mixed $value): \Tyhp\ExpressionBuilder
     {
-        return $this->compare('==', $value);
+        $this->guardNullSafe('eq');
+        return $this->compare('===', $value);
     }
     /**
-     * Loose inequality (`!=`).
+     * Strict inequality (`!==`).
      *
      * @return ExpressionBuilder<T>
      * @phpstan-return ExpressionBuilder<T>
@@ -220,7 +267,8 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function neq(mixed $value): \Tyhp\ExpressionBuilder
     {
-        return $this->compare('!=', $value);
+        $this->guardNullSafe('neq');
+        return $this->compare('!==', $value);
     }
     /**
      * Strict equality (`===`).
@@ -231,6 +279,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function same(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('same');
         return $this->compare('===', $value);
     }
     /**
@@ -242,6 +291,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function notSame(mixed $value): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('notSame');
         return $this->compare('!==', $value);
     }
     /**
@@ -251,6 +301,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function isNull(): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('isNull');
         return $this->compare('===', null);
     }
     /**
@@ -260,6 +311,7 @@ class PropertyPathBuilder extends PropertyPath
      */
     public function isNotNull(): \Tyhp\ExpressionBuilder
     {
+        $this->guardNullSafe('isNotNull');
         return $this->compare('!==', null);
     }
     /**
@@ -275,11 +327,17 @@ class PropertyPathBuilder extends PropertyPath
         $pathNodes = \Tyhp\Expression\FluentSupport::buildPathNodes($this->sourceType, $this->path, $this->nullSafeFlags);
         $leftBody = $pathNodes['body'];
         $body = new \Tyhp\Expression\BinaryExpression($leftBody, $operator, new \Tyhp\Expression\ConstantExpression($value), 'bool');
-        $pathCallable = $this->callable;
+        $pathCallable = \Tyhp\Expression\FluentSupport::synthesizePathCallable($this->path, $this->nullSafeFlags);
         $callable = static function (mixed $source) use ($pathCallable, $operator, $value): bool {
             return \Tyhp\Expression\FluentSupport::evaluateBinary($pathCallable($source), $operator, $value);
         };
         return ExpressionBuilder::fromComparison__tyhpGeneric($this->__tyhpGeneric->resolvedType(\Tyhp\PropertyPathBuilder::class, 'T'))($this->sourceType, $body, $this->parameters, $callable);
+    }
+    private function guardNullSafe(string $method): void
+    {
+        if ($this->nextIsNullSafe) {
+            throw new \LogicException(('nullSafe() must be followed by a property, not ' . $method) . '().');
+        }
     }
     protected function __initGenerics__tyhpGeneric(?\Tyhp\Type ...$generics): void
     {
@@ -289,7 +347,7 @@ class PropertyPathBuilder extends PropertyPath
         }
         $t = $generics[0] ?? \Tyhp\Type::object();
         $this->__tyhpGeneric->init(static::class, \Tyhp\PropertyPathBuilder::class, new \Tyhp\NamedType('T', $t));
-        $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::bool())));
+        $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::listOf(\Tyhp\Type::bool()));
         parent::__initGenerics__tyhpGeneric(\Tyhp\Type::callableShape('callable'));
     }
 }

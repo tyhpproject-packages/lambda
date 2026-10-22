@@ -8,4 +8,8 @@ declare(strict_types=1);
 
 namespace Tyhp\Expression\Structs;
 
+use Tyhp\Expression\ExpressionNode;
+use Tyhp\Expression\ParameterExpression;
+
+\Tyhp\Type::register('Tyhp\\Expression\\Structs\\PathNode', fn() => \Tyhp\Type::struct()->field('parameterExpression', \Tyhp\Type::fromClassName(\Tyhp\Expression\ParameterExpression::class))->field('body', \Tyhp\Type::fromClassName(\Tyhp\Expression\ExpressionNode::class)));
 //# sourceMappingURL=_functions.php.map

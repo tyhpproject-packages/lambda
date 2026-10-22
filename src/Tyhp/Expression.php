@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Tyhp;
 
+use Tyhp\Expression\EvalBacker;
+use Tyhp\Expression\ExpressionInterpreter;
 use Tyhp\Expression\ExpressionSerializer;
 use Tyhp\Expression\FluentSupport;
 
@@ -28,13 +30,88 @@ class Expression
     private static ?\ReflectionClass $__reflectedClass__tyhpGeneric = null;
     public readonly array $parameters;
     public mixed $lastResult = null;
-    public function __construct(public readonly \Tyhp\Expression\ExpressionNode $body, array $parameters, public readonly \Closure $callable, public readonly string $returnType)
+    /**
+     * Closure compiled from {@see $body} when no closure was stored.
+     * Null after a failed attempt means later calls walk the tree.
+     */
+    private ?\Closure $compiledClosure = null;
+    private bool $compiledClosureKnown = false;
+    public function __construct(public readonly \Tyhp\Expression\ExpressionNode $body, array $parameters, public readonly ?\Closure $callable, public readonly string $returnType)
     {
         $this->tyhpBootTraits();
         if ($this->__tyhpGeneric->needsInit()) {
             self::__initGenerics__tyhpGeneric(null);
         }
         $this->parameters = $parameters;
+    }
+    /**
+     * Build an expression from its tree and its parameters.
+     *
+     * Pass the closure a Tyhp `fn` would become when you have one: invoke and compile call
+     * that closure. Omit `$callable`, or pass null, to compile a closure from `$body` when
+     * every name and value in the tree can be represented safely, or to walk `$body` otherwise.
+     * The callable shape is taken from `$callable` when it is passed. The return type is
+     * read from that closure's return type, then from `$body`'s type, so the call does not
+     * pass a type string or a generic argument.
+     *
+     * @template TCallable of callable
+     * @param array<Expression\ParameterExpression> $parameters
+     *
+     * @phpstan-template TCallable of callable
+     * @phpstan-param array<Expression\ParameterExpression> $parameters
+     * @phpstan-return Expression<TCallable>
+     *
+     * @psalm-template TCallable of callable
+     * @psalm-param array<Expression\ParameterExpression> $parameters
+     * @psalm-return Expression<TCallable>
+     */
+    #[\Tyhp\GenericRuntime(erased: false, binder: "lambda__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
+    public static function lambda(\Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable = null): \Tyhp\Expression
+    {
+        return static::lambda__tyhpGeneric(null)($body, $parameters, $callable);
+    }
+    /**
+     * @param ?\Tyhp\Type $__generic_TCallable
+     * @return \Closure(\Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable=): \Tyhp\Expression
+     */
+    public static function lambda__tyhpGeneric(?\Tyhp\Type $__generic_TCallable): \Closure
+    {
+        $__generic_TCallable ??= \Tyhp\Type::callable();
+        return function (\Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable = null) use ($__generic_TCallable): \Tyhp\Expression {
+            return \Tyhp\Expression::new_Tyhp_Expression__tyhpGeneric($__generic_TCallable, $body, $parameters, $callable, self::inferReturnType($callable, $body));
+        };
+    }
+    /**
+     * Return type string for {@see Expression::lambda()}: the closure's declared return
+     * type when a closure was passed and declares one, otherwise the type stored on the tree body.
+     */
+    protected static function inferReturnType(?\Closure $callable, \Tyhp\Expression\ExpressionNode $body): string
+    {
+        if ($callable !== null) {
+            $fromCallable = self::callableReturnTypeName($callable);
+            if ($fromCallable !== null) {
+                return $fromCallable;
+            }
+        }
+        if (($body->type !== '') && ($body->type !== 'mixed')) {
+            return $body->type;
+        }
+        return 'mixed';
+    }
+    /**
+     * PHP return type of `$callable`, or null when it is absent or `mixed`.
+     */
+    protected static function callableReturnTypeName(\Closure $callable): ?string
+    {
+        $type = \Tyhp\Type::fromCallableReturn($callable);
+        if ($type === null) {
+            return null;
+        }
+        $name = (string) $type;
+        if (($name === '') || ($name === 'mixed')) {
+            return null;
+        }
+        return $name;
     }
     /**
      * Start a fluent property-path / expression builder for PHP interop.
@@ -94,7 +171,7 @@ class Expression
     {
         return \Tyhp\Expression\FluentSupport::combineAll([$first, $second, ...$rest], '||');
     }
-    final public static function new_Tyhp_Expression__tyhpGeneric(?\Tyhp\Type $__generic_TCallableShape, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable, string $returnType): self
+    final public static function new_Tyhp_Expression__tyhpGeneric(?\Tyhp\Type $__generic_TCallableShape, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable, string $returnType): self
     {
         self::$__reflectedClass__tyhpGeneric ??= new \ReflectionClass(self::class);
         $__tyhp_obj = self::$__reflectedClass__tyhpGeneric->newInstanceWithoutConstructor();
@@ -104,16 +181,50 @@ class Expression
     }
     public function __invoke(mixed ...$args): mixed
     {
-        $result = ($this->callable)(...$args);
+        $native = $this->nativeClosure();
+        $result = ($native !== null) ? $native(...$args) : \Tyhp\Expression\ExpressionInterpreter::evaluate($this->body, $this->parameters, ...$args);
         $this->lastResult = $result;
         if (\Tyhp\Type::is($result, \Tyhp\Type::mixed())) {
             return $result;
         }
-        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), Type::of($result), 'lastResult');
+        throw new \Tyhp\Exceptions\IncompatibleTypeException(\Tyhp\Type::mixed(), \Tyhp\Type::of($result), 'lastResult');
     }
     public function compile(): \Closure
     {
-        return $this->callable;
+        $native = $this->nativeClosure();
+        if ($native !== null) {
+            return $native;
+        }
+        return $this->walkerClosure();
+    }
+    /**
+     * Closure stored on this expression, or one compiled from {@see $body} and cached.
+     * Null when the tree cannot be compiled and must be walked.
+     */
+    protected function nativeClosure(): ?\Closure
+    {
+        $stored = $this->callable;
+        if ($stored !== null) {
+            return $stored;
+        }
+        if ($this->compiledClosureKnown) {
+            return $this->compiledClosure;
+        }
+        $this->compiledClosure = \Tyhp\Expression\EvalBacker::tryCompile($this->body, $this->parameters);
+        $this->compiledClosureKnown = true;
+        return $this->compiledClosure;
+    }
+    /**
+     * Closure that walks {@see $body}. Used when no closure was stored and the tree
+     * cannot be compiled.
+     */
+    private function walkerClosure(): \Closure
+    {
+        $body = $this->body;
+        $parameters = $this->parameters;
+        return static function (mixed ...$args) use ($body, $parameters): mixed {
+            return \Tyhp\Expression\ExpressionInterpreter::evaluate($body, $parameters, ...$args);
+        };
     }
     /**
      * Structural equality of two expression trees (parameters, return type, and body).
@@ -170,8 +281,8 @@ class Expression
         }
         $tCallableShape = $generics[0] ?? \Tyhp\Type::callable();
         $this->__tyhpGeneric->init(static::class, \Tyhp\Expression::class, new \Tyhp\NamedType('TCallableShape', $tCallableShape));
-        $this->__tyhpGeneric->setPropertyType('parameters', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::fromClassName(\Expression\ParameterExpression::class))));
-        $this->__tyhpGeneric->setPropertyType('callable', \Tyhp\Type::generic(\Closure::class, new \Tyhp\NamedType('TCallableShape', $tCallableShape)));
+        $this->__tyhpGeneric->setPropertyType('parameters', \Tyhp\Type::listOf(\Tyhp\Type::fromClassName(\Expression\ParameterExpression::class)));
+        $this->__tyhpGeneric->setPropertyType('callable', \Tyhp\Type::nullable(\Tyhp\Type::closure()));
         $this->__tyhpGeneric->markBound();
     }
 }

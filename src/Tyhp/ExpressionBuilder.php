@@ -48,7 +48,7 @@ class ExpressionBuilder extends \Tyhp\Expression
      * @param array<string> $path RHS property segments while continuing after and()/or().
      * @param array<bool> $nullSafeFlags
      */
-    public function __construct(private string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable, string $returnType = 'bool', private array $path = [], private array $nullSafeFlags = [], private ?\Tyhp\Expression $pendingLeft = null, private ?string $pendingCombinator = null)
+    public function __construct(private string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable, string $returnType = 'bool', private array $path = [], private array $nullSafeFlags = [], private ?\Tyhp\Expression $pendingLeft = null, private ?string $pendingCombinator = null)
     {
         $this->tyhpBootTraits();
         if ($this->__tyhpGeneric->needsInit()) {
@@ -65,18 +65,18 @@ class ExpressionBuilder extends \Tyhp\Expression
      * @psalm-return ExpressionBuilder<TSource>
      */
     #[\Tyhp\GenericRuntime(erased: false, binder: "fromComparison__tyhpGeneric", layouts: [1], compiler: "805.1.0.0")]
-    public static function fromComparison(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable): \Tyhp\ExpressionBuilder
+    public static function fromComparison(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable): \Tyhp\ExpressionBuilder
     {
         return static::fromComparison__tyhpGeneric(null)($sourceType, $body, $parameters, $callable);
     }
     /**
      * @param ?\Tyhp\Type $__generic_TSource
-     * @return \Closure(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable): \Tyhp\ExpressionBuilder
+     * @return \Closure(string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable): \Tyhp\ExpressionBuilder
      */
     public static function fromComparison__tyhpGeneric(?\Tyhp\Type $__generic_TSource): \Closure
     {
         $__generic_TSource ??= \Tyhp\Type::mixed();
-        return function (string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable) use ($__generic_TSource): \Tyhp\ExpressionBuilder {
+        return function (string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable) use ($__generic_TSource): \Tyhp\ExpressionBuilder {
             return \Tyhp\ExpressionBuilder::new_Tyhp_ExpressionBuilder__tyhpGeneric($__generic_TSource, $sourceType, $body, $parameters, $callable, 'bool');
         };
     }
@@ -114,7 +114,7 @@ class ExpressionBuilder extends \Tyhp\Expression
             return \Tyhp\ExpressionBuilder::new_Tyhp_ExpressionBuilder__tyhpGeneric($__generic_TOf, $sourceType, $left->body, $left->parameters, $left->callable, $left->returnType, path: [], nullSafeFlags: [], pendingLeft: $left, pendingCombinator: $combinator);
         };
     }
-    final public static function new_Tyhp_ExpressionBuilder__tyhpGeneric(?\Tyhp\Type $__generic_T, string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, \Closure $callable, string $returnType = 'bool', array $path = [], array $nullSafeFlags = [], ?\Tyhp\Expression $pendingLeft = null, ?string $pendingCombinator = null): self
+    final public static function new_Tyhp_ExpressionBuilder__tyhpGeneric(?\Tyhp\Type $__generic_T, string $sourceType, \Tyhp\Expression\ExpressionNode $body, array $parameters, ?\Closure $callable, string $returnType = 'bool', array $path = [], array $nullSafeFlags = [], ?\Tyhp\Expression $pendingLeft = null, ?string $pendingCombinator = null): self
     {
         self::$__reflectedClass__tyhpGeneric ??= new \ReflectionClass(self::class);
         $__tyhp_obj = self::$__reflectedClass__tyhpGeneric->newInstanceWithoutConstructor();
@@ -238,7 +238,7 @@ class ExpressionBuilder extends \Tyhp\Expression
      */
     public function eq(mixed $value): \Tyhp\ExpressionBuilder
     {
-        return $this->compare('==', $value);
+        return $this->compare('===', $value);
     }
     /**
      * @return ExpressionBuilder<T>
@@ -247,7 +247,7 @@ class ExpressionBuilder extends \Tyhp\Expression
      */
     public function neq(mixed $value): \Tyhp\ExpressionBuilder
     {
-        return $this->compare('!=', $value);
+        return $this->compare('!==', $value);
     }
     /**
      * @return ExpressionBuilder<T>
@@ -337,8 +337,8 @@ class ExpressionBuilder extends \Tyhp\Expression
         }
         $t = $generics[0] ?? \Tyhp\Type::object();
         $this->__tyhpGeneric->init(static::class, \Tyhp\ExpressionBuilder::class, new \Tyhp\NamedType('T', $t));
-        $this->__tyhpGeneric->setPropertyType('path', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::string())));
-        $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::generic('array', new \Tyhp\NamedType('TValue', \Tyhp\Type::bool())));
+        $this->__tyhpGeneric->setPropertyType('path', \Tyhp\Type::listOf(\Tyhp\Type::string()));
+        $this->__tyhpGeneric->setPropertyType('nullSafeFlags', \Tyhp\Type::listOf(\Tyhp\Type::bool()));
         parent::__initGenerics__tyhpGeneric(\Tyhp\Type::callableShape('callable'));
     }
 }
