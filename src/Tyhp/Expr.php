@@ -45,7 +45,7 @@ use Tyhp\Expression\UnaryExpression;
  */
 class Expr extends \Tyhp\Expression
 {
-    private const CHAIN_METHODS = ['and', 'or', 'xor', 'then', 'else', 'nullsafe', 'expr', 'prop', 'gte', 'gt', 'lte', 'lt', 'eq', 'neq', 'looseeq', 'looseneq', 'same', 'notsame', 'isnull', 'isnotnull', 'coalesce', 'call', 'staticcall', 'backedby', 'plus', 'minus', 'times', 'dividedby', 'mod', 'pow', 'concat', 'spaceship', 'bitand', 'bitor', 'bitxor', 'shiftleft', 'shiftright', 'not', 'neg', 'pos', 'bitnot', 'value', 'is', 'at', 'cast', 'make'];
+    private const array CHAIN_METHODS = ['and', 'or', 'xor', 'then', 'else', 'nullsafe', 'expr', 'prop', 'gte', 'gt', 'lte', 'lt', 'eq', 'neq', 'looseeq', 'looseneq', 'same', 'notsame', 'isnull', 'isnotnull', 'coalesce', 'call', 'staticcall', 'backedby', 'plus', 'minus', 'times', 'dividedby', 'mod', 'pow', 'concat', 'spaceship', 'bitand', 'bitor', 'bitxor', 'shiftleft', 'shiftright', 'not', 'neg', 'pos', 'bitnot', 'value', 'is', 'at', 'cast', 'make'];
     /**
      * @param array<ParameterExpression> $parameters
      * @param array<ParameterExpression> $roots
